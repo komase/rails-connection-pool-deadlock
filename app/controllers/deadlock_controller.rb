@@ -1,9 +1,22 @@
 class DeadlockController < ApplicationController
   def transaction
-    1000.times do |i|
-      puts "creating record #{i}"
-      Post.create!(title: 'deadlock')
-      sleep 0.1
+    def transaction
+      1000.times do |i|
+        puts "creating record #{i}"
+        ActiveRecord::Base.transaction do
+          ActiveRecord::Base.transaction do
+            Post.create!(title: 'deadlock')
+            sleep 0.1
+          end
+
+          ActiveRecord::Base.transaction do
+            Post.create!(title: 'deadlock')
+            sleep 0.1
+          end
+        end
+      end
+
+      head :ok
     end
 
     head :ok
